@@ -100,15 +100,17 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
 
     public function listSimplePagesAction()
     {
-        $db = get_db();
-        $simplePages = $db->query("SELECT title, id FROM `$db->SimplePagesPage`")->fetchAll();
-        $list = "<ul>";
-        foreach ($simplePages as $i => $page) {
-            $list .= "<li><a href='" . WEB_ROOT . "/admin/babela/simple-page/" . $page['id'] . "' target='_blank'>" . $page['title'] . "</a></li>";
-        }
-        $list .= "</ul>";
+        if (plugin_is_active('SimplePages')) {
+            $db = get_db();
+            $simplePages = $db->query("SELECT title, id FROM `$db->SimplePagesPage`")->fetchAll();
+            $list = "<ul>";
+            foreach ($simplePages as $i => $page) {
+                $list .= "<li><a href='" . WEB_ROOT . "/admin/babela/simple-page/" . $page['id'] . "' target='_blank'>" . $page['title'] . "</a></li>";
+            }
+            $list .= "</ul>";
 
-        $this->view->content = $list;
+            $this->view->content = $list;
+        }
     }
 
     public function listExhibitsPagesAction()
@@ -159,7 +161,7 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
 
     public function translateSimpleVocabAction()
     {
-        $form=false;
+        $form = false;
         if (isset($params['module'])) {
             if ($params['module'] == 'simple-vocab') {
                 $form = $this->getSimpleVocabForm();
@@ -181,7 +183,7 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
                 }
             }
         }
-        if($form) {
+        if ($form) {
             $this->view->form = $form;
         }
     }
