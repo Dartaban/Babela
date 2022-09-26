@@ -205,11 +205,12 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
                             $value = array_values($field);
                             $value = $db->quote($value[0]);
                             if ($value) {
-                                if (isset($texts["use_tiny_mce_" . $this->current_language]) && $texts["use_tiny_mce_" . $this->current_language] == 1) {
+                                if (array_key_exists("use_tiny_mce_" . $lang, $texts) && $texts["use_tiny_mce_" . $lang] == 1 && array_key_exists("text".$lang,$field)) {
                                     $useHtml = 1;
                                 } else {
                                     $useHtml = 0;
                                 }
+
                                 $query = "INSERT INTO `$db->TranslationRecords` VALUES (null, $id, 'SimplePage" . ucfirst($fieldName) . "', 0, 0, 0, '$lang', $value, $useHtml)";
                                 $db->query($query);
                             }
@@ -454,8 +455,8 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
             $values = array();
             foreach ($translations as $index => $texts) {
                 $fieldName = substr($texts['record_type'], 10);
-                $values[$fieldName][$texts['lang']] = $texts['text'];
-                $values[$fieldName]['html'] = $texts['html'];
+                $values[$fieldName][$texts['lang']]['text'] = $texts['text'];
+                $values[$fieldName][$texts['lang']]['html'] = $texts['html'];
             }
         }
 
@@ -470,14 +471,14 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
             $titleSS = new Zend_Form_Element_Text('title');
             $titleSS->setLabel('Title (' . Locale::getDisplayLanguage($lang, $this->current_language) . ')');
             $titleSS->setName($titleName);
-            if (isset($values['Title'][$lang])) {
-                $titleSS->setValue($values['Title'][$lang]);
+            if (isset($values['Title'][$lang]['text'])) {
+                $titleSS->setValue($values['Title'][$lang]['text']);
             }
             $titleSS->setBelongsTo($titleName);
             $form->addElement($titleSS);
-
-            if (isset($values['Text']['html'])) {
-                $checked = $values['Text']['html'];
+            $checked = $values[$fieldName][$lang]['html'];
+            if ((int)$checked>0) {
+                $checked = (int)$checked;
             } else {
                 $checked = false;
             }
@@ -497,8 +498,8 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
             $textSS = new Zend_Form_Element_Textarea('texte');
             $textSS->setLabel('Text (' . Locale::getDisplayLanguage($lang, $this->current_language) . ')');
             $textSS->setName($textName);
-            if (isset($values['Text'][$lang])) {
-                $textSS->setValue($values['Text'][$lang]);
+            if (isset($values['Text'][$lang]['text'])) {
+                $textSS->setValue($values['Text'][$lang]['text']);
             }
             $textSS->setBelongsTo($textName);
             $textSS->setAttrib('class', 'babela-use-html');
