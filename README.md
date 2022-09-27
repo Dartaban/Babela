@@ -170,6 +170,7 @@ Enabling the HTML editor will affect the original field and all the translation 
 The following elements can be translated :
 
 - Items
+- File
 - Simple Pages
 - Menus
 - Strings echoed in theme files (via the ``t()`` function)
@@ -179,7 +180,6 @@ The following elements are NOT translated OR NOT FULLY, as of now :
 - Site's information
 - Exhibits
 - Collections
-- File
 
 Once an element is translated, the plugin detects the current language and displays the matching translation if it exists, the default language string if it doesn't.
 
