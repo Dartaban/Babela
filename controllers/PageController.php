@@ -115,21 +115,23 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
 
     public function listExhibitsPagesAction()
     {
-        $db = get_db();
-        $exhibits = $db->query("SELECT title, id FROM `$db->Exhibits`")->fetchAll();
-        $list = "<ul>";
-        foreach ($exhibits as $i => $exhibit) {
-            $list .= "<li><a href='" . WEB_ROOT . "/admin/babela/exhibit/" . $exhibit['id'] . "' target='_blank'>" . $exhibit['title'] . "</a></li>";
-            $exhibitPages = $db->getTable("ExhibitPage")->findBy(array('exhibit_id' => $exhibit['id'], 'sort_field' => 'order'));
-            $list .= "<ul>";
-            foreach ($exhibitPages as $ii => $exhibitPage) {
-                $list .= "<li><a href='" . WEB_ROOT . "/admin/babela/exhibit/page/" . $exhibitPage['id'] . "' target='_blank'>" . $exhibitPage['title'] . "</a></li>";
+        if (plugin_is_active('ExhibitBuilder')) {
+            $db = get_db();
+            $exhibits = $db->query("SELECT title, id FROM `$db->Exhibits`")->fetchAll();
+            $list = "<ul>";
+            foreach ($exhibits as $i => $exhibit) {
+                $list .= "<li><a href='" . WEB_ROOT . "/admin/babela/exhibit/" . $exhibit['id'] . "' target='_blank'>" . $exhibit['title'] . "</a></li>";
+                $exhibitPages = $db->getTable("ExhibitPage")->findBy(array('exhibit_id' => $exhibit['id'], 'sort_field' => 'order'));
+                $list .= "<ul>";
+                foreach ($exhibitPages as $ii => $exhibitPage) {
+                    $list .= "<li><a href='" . WEB_ROOT . "/admin/babela/exhibit/page/" . $exhibitPage['id'] . "' target='_blank'>" . $exhibitPage['title'] . "</a></li>";
+                }
+                $list .= "</ul>";
             }
             $list .= "</ul>";
-        }
-        $list .= "</ul>";
 
-        $this->view->content = $list;
+            $this->view->content = $list;
+        }
     }
 
     public function translateTagsAction()
@@ -205,7 +207,7 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
                             $value = array_values($field);
                             $value = $db->quote($value[0]);
                             if ($value) {
-                                if (array_key_exists("use_tiny_mce_" . $lang, $texts) && $texts["use_tiny_mce_" . $lang] == 1 && array_key_exists("text".$lang,$field)) {
+                                if (array_key_exists("use_tiny_mce_" . $lang, $texts) && $texts["use_tiny_mce_" . $lang] == 1 && array_key_exists("text" . $lang, $field)) {
                                     $useHtml = 1;
                                 } else {
                                     $useHtml = 0;
@@ -477,7 +479,7 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
             $titleSS->setBelongsTo($titleName);
             $form->addElement($titleSS);
             $checked = $values[$fieldName][$lang]['html'];
-            if ((int)$checked>0) {
+            if ((int)$checked > 0) {
                 $checked = (int)$checked;
             } else {
                 $checked = false;
