@@ -289,6 +289,11 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
     {
         $id = $this->getParam('id');
         $form = $this->getExhibitPageForm($id);
+        $linksPageBlocksTransLate = "<ul>";
+        foreach ($this->languages as $lang) {
+            $linksPageBlocksTransLate .= "<li><a href='$id/blocks/$lang'>Traduire blocks : ". Locale::getDisplayLanguage($lang, $this->current_language) . "</a></li>";
+        }
+        $linksPageBlocksTransLate .= "</ul>";
 
         if ($this->_request->isPost()) {
             $formData = $this->_request->getPost();
@@ -318,7 +323,49 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $db = get_db();
         $original = $db->query("SELECT * FROM `$db->ExhibitPages` WHERE id = " . $id)->fetchAll();
         $original = "<details><summary>Original texts</summary><div><em>Title</em> : " . $original[0]['title'] . "<br /><br /><em>Short title</em> : " . $original[0]['short_title'] . "</div></details>";
-        $this->view->form = $original . $form;
+        $this->view->form = $original . $form.$linksPageBlocksTransLate;
+    }
+
+    public function translateExhibitPageBlocksAction()
+    {
+        $id = $this->getParam('id');
+        $lang = $this->getParam('lang');
+        //$form = $this->getExhibitPageForm($id);
+        $linksPageBlocksTransLate = "$id$lang<ul>";
+        foreach ($this->languages as $langT) {
+            $linksPageBlocksTransLate .= "<li><a href='$langT'>Traduire blocks : ". Locale::getDisplayLanguage($langT, $this->current_language) . "</a></li>";
+        }
+        $linksPageBlocksTransLate .= "</ul>";
+
+/*        if ($this->_request->isPost()) {
+            $formData = $this->_request->getPost();
+            if ($form->isValid($formData)) {
+                $texts = $form->getValues();
+                // Sauvegarde form dans DB
+                $db = get_db();
+                $db->query("DELETE FROM `$db->TranslationRecords` WHERE record_type LIKE 'PageExhibit%' AND record_id = " . $id);
+                $useHtml = 0;
+                foreach ($texts as $fieldName => $translations) {
+                    if (is_array($translations)) {
+                        foreach ($translations as $lang => $field) {
+                            $value = array_values($field);
+                            if ($value[0]) {
+                                $value = $db->quote($value[0]);
+                                $query = "INSERT INTO `$db->TranslationRecords` VALUES (null, $id, 'PageExhibit" . ucfirst($fieldName) . "', 0, 0, 0, '$lang', $value, $useHtml)";
+                                $db->query($query);
+                            }
+                        }
+                    }
+                    $useHtml = 0;
+                }
+            }
+        }
+
+        // Retrieve orignal texts from DB
+        $db = get_db();
+        $original = $db->query("SELECT * FROM `$db->ExhibitPages` WHERE id = " . $id)->fetchAll();
+        $original = "<details><summary>Original texts</summary><div><em>Title</em> : " . $original[0]['title'] . "<br /><br /><em>Short title</em> : " . $original[0]['short_title'] . "</div></details>";*/
+        $this->view->form = $linksPageBlocksTransLate;
     }
 
 
@@ -659,6 +706,7 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         foreach ($this->languages as $lang) {
             $titleName = "title[$lang]";
             $shortTitleName = "menu_title[$lang]";
+            $linkTranslatePageBlocksName = "note_link_translate_page_blocks[$lang]";
 
             // Title
             $titleSS = new Zend_Form_Element_Text('title');
@@ -679,6 +727,12 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
             }
             $shorttitleSS->setBelongsTo($shortTitleName);
             $form->addElement($shorttitleSS);
+
+            // Translate content link
+            //$linkTranslatePageBlocks = new Zend_Form_Element_Note('note_link_translate_page_blocks');
+            //$linkTranslatePageBlocks->setValue("<p><a href='/blocks/$lang'>Traduire blocks</a>".'(' . Locale::getDisplayLanguage($lang, $this->current_language) . ')'."</p>");
+            //$linkTranslatePageBlocks->setBelongsTo($linkTranslatePageBlocksName);
+            //$form->addElement($linkTranslatePageBlocks);
         }
 
         $submit = new Zend_Form_Element_Submit('submit');

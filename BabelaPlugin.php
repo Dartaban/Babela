@@ -220,6 +220,19 @@ class BabelaPlugin extends Omeka_Plugin_AbstractPlugin
             )
         );
         $router->addRoute(
+            'babela_translate_exhibit_page_page_blocks',
+            new Zend_Controller_Router_Route(
+                'babela/exhibit/page/:id/blocks/:lang',
+                array(
+                    'module' => 'babela',
+                    'controller' => 'page',
+                    'action' => 'translate-exhibit-page-blocks',
+                    'id' => '',
+                    'lang' => '',
+                )
+            )
+        );
+        $router->addRoute(
             'babela_translate_tags',
             new Zend_Controller_Router_Route(
                 'babela/tags',
