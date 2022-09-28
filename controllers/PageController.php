@@ -331,22 +331,6 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
 
         if ($this->_request->isPost()) {
             $formData = $this->_request->getPost();
-           // var_dump($formData);
-            /*            array(7) { ["page_id"]=> string(1) "1" ["lang"]=> string(2) "en" ["layout"]=> string(4) "text" ["order"]=> string(1) "1" ["i"]=> string(1) "1" ["ElementTranslation"]=> string(35) "
-            xcdxd
-
-            ggggh
-
-            " ["submit"]=> string(16) "Save Translation" } array(7) { ["page_id"]=> string(1) "1" ["element_id"]=> NULL ["lang"]=> string(2) "en" ["layout"]=> string(4) "text" ["order"]=> string(1) "1" ["i"]=> string(1) "1" ["ElementTranslation"]=> string(35) "
-            xcdxd
-
-            ggggh
-
-            " }
-
-            $idPage = '',$idElement='', $lang = '', $layout = '', $order = '', $text = '', $i = ''
-
-            */
             $formMaker = $this->getExhibitPageBlocksFormMaker($formData["page_id"], $formData["element_id"], $formData["lang"], $formData["layout"], $formData["order"], $formData["element_translation"], $formData["i"]);
             if ($formMaker->isValid($formData)) {
                 //$text = $formMaker->getValues();
@@ -388,44 +372,37 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         // Page
         $page = new Zend_Form_Element_Hidden('page_id');
         $page->setValue($idPage);
-        //$page->setBelongsto($i);
         $form->addElement($page);
 
         // Element
         $element = new Zend_Form_Element_Hidden('element_id');
         $element->setValue($idElement);
-        //$element->setBelongsto($i);
         $form->addElement($element);
 
         // Language
         $language = new Zend_Form_Element_Hidden('lang');
         $language->setValue($lang);
-        //$language->setBelongsto($i);
         $form->addElement($language);
 
         // Layout
         $layoutHidden = new Zend_Form_Element_Hidden('layout');
         $layoutHidden->setValue($layout);
-        //$layoutHidden->setBelongsto($i);
         $form->addElement($layoutHidden);
 
         // Order
         $orderHidden = new Zend_Form_Element_Hidden('order');
         $orderHidden->setValue($order);
-        //$orderHidden->setBelongsto($i);
         $form->addElement($orderHidden);
 
         // I
         $iHidden = new Zend_Form_Element_Hidden('i');
         $iHidden->setValue($order);
-        //$iHidden->setBelongsto($i);
         $form->addElement($iHidden);
 
         // Original
         $originalText = new Zend_Form_Element_Note('OriginalText');
         $originalText->setValue($text);
         $originalText->setLabel("Block Original $order ($layout)");
-        //$originalText->setBelongsto($i);
         $form->addElement($originalText);
 
         // Translation
@@ -439,7 +416,6 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         if (count($translatedText[0])>0) {
             $textTranslation->setValue($translatedText[0]['text']);
         }
-        //$textTranslation->setBelongsto($i);
         $form->addElement($textTranslation);
 
         $form = $this->prettifyForm2($form);
@@ -447,7 +423,6 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $submit = new Zend_Form_Element_Submit('submit');
         $submit->setLabel('Save Translation');
         $submit->setValue('');
-        //$submit->setBelongsto($i);
         $form->addElement($submit);
 
         return $form;
