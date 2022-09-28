@@ -641,6 +641,54 @@ class BabelaPlugin extends Omeka_Plugin_AbstractPlugin
         return '<a href="' . html_escape($uri) . '" ' . tag_attributes($props) . '>' . $text . '</a>';
     }
 
+    /**
+     * Render the markup for an exhibit page.
+     *
+     * @param ExhibitPage|null $exhibitPage
+     */
+    function exhibit_builder_render_exhibit_page_translate($exhibitPage = null)
+    {
+        if ($exhibitPage === null) {
+            $exhibitPage = get_current_record('exhibit_page');
+        }
+
+        $blocks = $exhibitPage->ExhibitPageBlocks;
+        $rawAttachments = $exhibitPage->getAllAttachments();
+        $attachments = array();
+        foreach ($rawAttachments as $attachment) {
+            $attachments[$attachment->block_id][] = $attachment;
+        }
+        foreach ($blocks as $index => $block) {
+            $db = get_db();
+            $current_lang = substr(getLanguageForOmekaSwitch(), 0, 2);
+            $query = "SELECT text FROM `$db->TranslationRecord` WHERE
+                    lang = '$current_lang' AND
+                    element_id = 0 AND
+                    record_id = $block->id AND
+                    element_number = 0 AND
+                    record_type = 'PageBlockExhibit'";
+            if ($translations = $db->query($query)->fetchAll()) {
+                if (isset($translations[0])) {
+                    $textTranslated = $translations[0]['text'];
+                }
+            } else {
+                $textTranslated =  $block->text;
+            }
+
+            $block->setArray(array('text' => $textTranslated));
+            $layout = $block->getLayout();
+            echo '<div class="exhibit-block layout-' . html_escape($layout->id) . '">';
+            echo get_view()->partial($layout->getViewPartial(), array(
+                'index' => $index,
+                'options' => $block->getOptions(),
+                'text' => get_view()->shortcodes($block->text),
+                'attachments' => array_key_exists($block->id, $attachments) ? $attachments[$block->id] : array(),
+                'block' => $block,
+            ));
+            echo '</div>';
+        }
+    }
+
 }
 
 
