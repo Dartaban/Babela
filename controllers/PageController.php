@@ -328,15 +328,6 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
 
     public function translateExhibitPageBlocksAction()
     {
-        $id = $this->getParam('id');
-        $lang = $this->getParam('lang');
-        $form = $this->getExhibitPageBlocksForm($id, $lang);
-
-        $linksPageBlocksTransLate = "<ul>";
-        foreach ($this->languages as $langT) {
-            $linksPageBlocksTransLate .= "<li><a href='$langT'>Traduire blocks : " . Locale::getDisplayLanguage($langT, $this->current_language) . "</a></li>";
-        }
-        $linksPageBlocksTransLate .= "</ul>";
 
         if ($this->_request->isPost()) {
             $formData = $this->_request->getPost();
@@ -373,11 +364,17 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
 
             }
         }
-        /*
-                        // Retrieve orignal texts from DB
-                        $db = get_db();
-                        $original = $db->query("SELECT * FROM `$db->ExhibitPages` WHERE id = " . $id)->fetchAll();
-                        $original = "<details><summary>Original texts</summary><div><em>Title</em> : " . $original[0]['title'] . "<br /><br /><em>Short title</em> : " . $original[0]['short_title'] . "</div></details>";*/
+
+        $id = $this->getParam('id');
+        $lang = $this->getParam('lang');
+        $form = $this->getExhibitPageBlocksForm($id, $lang);
+
+        $linksPageBlocksTransLate = "<ul>";
+        foreach ($this->languages as $langT) {
+            $linksPageBlocksTransLate .= "<li><a href='$langT'>Traduire blocks : " . Locale::getDisplayLanguage($langT, $this->current_language) . "</a></li>";
+        }
+        $linksPageBlocksTransLate .= "</ul>";
+
         $this->view->form = $form . $linksPageBlocksTransLate;
     }
 
@@ -436,9 +433,12 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $textTranslation->setAttrib('rows', 10);
         $textTranslation->setLabel(ucfirst(Locale::getDisplayLanguage($lang, $this->current_language)));
         $textTranslation->setName('element_translation');
-        /*            if (isset($term[$lang]) && $term[$lang] <> '') {
-                        $textTerm->setValue($term[$lang]);
-                    }*/
+        $db = get_db();
+        // Retrieve translation for this block from DB
+        $translatedText = $db->query("SELECT text FROM `$db->TranslationRecords` WHERE record_type LIKE 'PageBlockExhibit' AND record_id = " . $idElement." AND lang = '" . $lang ."'")->fetchAll();
+        if (count($translatedText[0])>0) {
+            $textTranslation->setValue($translatedText[0]['text']);
+        }
         //$textTranslation->setBelongsto($i);
         $form->addElement($textTranslation);
 
