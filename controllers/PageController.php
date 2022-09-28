@@ -373,13 +373,19 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $db = get_db();
         // Retrieve original blocks for this page from DB
         $originals = $db->query("SELECT * FROM `$db->ExhibitPageBlocks` WHERE page_id = $idPage ORDER BY 'order' ASC")->fetchAll();
-        $form = "";
+        $form = new Zend_Form();
+
         foreach ($originals as $i => $original) {
             $layout = $original['layout'];
             $order = $original['order'];
             $text = $original['text'];
-            $form .= "<h3>Block $order ($layout)</h3>";
-            $form .= "<div>$text</div>";
+            $form->setName('ExhibitPageBlocksForm'.$i);
+            // Original
+            $originalText = new Zend_Form_Element_Note('OriginalText_' . $i);
+            $originalText->setValue($text);
+            $originalText->setLabel("Block Original $order ($layout)");
+            $originalText->setBelongsto($i);
+            $form->addElement($originalText);
         }
         return $form;
     }
