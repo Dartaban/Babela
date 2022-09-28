@@ -373,21 +373,58 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $db = get_db();
         // Retrieve original blocks for this page from DB
         $originals = $db->query("SELECT * FROM `$db->ExhibitPageBlocks` WHERE page_id = $idPage ORDER BY 'order' ASC")->fetchAll();
-        $form = new Zend_Form();
+
+        $formOuput = "";
 
         foreach ($originals as $i => $original) {
+
             $layout = $original['layout'];
             $order = $original['order'];
             $text = $original['text'];
-            $form->setName('ExhibitPageBlocksForm'.$i);
+
+            $form = new Zend_Form();
+
+            $form->setName('ExhibitPageBlocksForm' . $i);
+
+            // Page
+            $page = new Zend_Form_Element_Hidden('page_id');
+            $page->setValue($idPage);
+            $page->setBelongsto($i);
+            $form->addElement($page);
+
+            // Language
+            $language = new Zend_Form_Element_Hidden('lang');
+            $language->setValue($lang);
+            $language->setBelongsto($i);
+            $form->addElement($language);
+
             // Original
-            $originalText = new Zend_Form_Element_Note('OriginalText_' . $i);
+            $originalText = new Zend_Form_Element_Note('OriginalText');
             $originalText->setValue($text);
             $originalText->setLabel("Block Original $order ($layout)");
             $originalText->setBelongsto($i);
             $form->addElement($originalText);
-        }
-        return $form;
+
+            // Translation
+            $textTranslation = new Zend_Form_Element_Textarea('TextTranslated');
+            $textTranslation->setAttrib('rows', 10);
+            $textTranslation->setLabel(ucfirst(Locale::getDisplayLanguage($lang, $this->current_language)));
+            $textTranslation->setName('ElementTranslation');
+            /*            if (isset($term[$lang]) && $term[$lang] <> '') {
+                            $textTerm->setValue($term[$lang]);
+                        }*/
+            $textTranslation->setBelongsto($i);
+            $form->addElement($textTranslation);
+
+            $submit = new Zend_Form_Element_Submit('submit');
+            $submit->setLabel('Save Translation');
+            $submit->setValue('');
+            $submit->setBelongsto($i);
+            $form->addElement($submit);
+
+            $formOuput .= $form;
+            }
+        return $formOuput;
     }
 
     public function getSimpleVocabForm()
