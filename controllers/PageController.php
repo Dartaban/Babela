@@ -331,41 +331,128 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $id = $this->getParam('id');
         $lang = $this->getParam('lang');
         $form = $this->getExhibitPageBlocksForm($id, $lang);
+
         $linksPageBlocksTransLate = "<ul>";
         foreach ($this->languages as $langT) {
             $linksPageBlocksTransLate .= "<li><a href='$langT'>Traduire blocks : " . Locale::getDisplayLanguage($langT, $this->current_language) . "</a></li>";
         }
         $linksPageBlocksTransLate .= "</ul>";
 
-        /*        if ($this->_request->isPost()) {
-                    $formData = $this->_request->getPost();
-                    if ($form->isValid($formData)) {
-                        $texts = $form->getValues();
-                        // Sauvegarde form dans DB
-                        $db = get_db();
-                        $db->query("DELETE FROM `$db->TranslationRecords` WHERE record_type LIKE 'PageExhibit%' AND record_id = " . $id);
-                        $useHtml = 0;
-                        foreach ($texts as $fieldName => $translations) {
-                            if (is_array($translations)) {
-                                foreach ($translations as $lang => $field) {
-                                    $value = array_values($field);
-                                    if ($value[0]) {
-                                        $value = $db->quote($value[0]);
-                                        $query = "INSERT INTO `$db->TranslationRecords` VALUES (null, $id, 'PageExhibit" . ucfirst($fieldName) . "', 0, 0, 0, '$lang', $value, $useHtml)";
-                                        $db->query($query);
-                                    }
-                                }
-                            }
-                            $useHtml = 0;
-                        }
-                    }
-                }
+        if ($this->_request->isPost()) {
+            $formData = $this->_request->getPost();
+           // var_dump($formData);
+            /*            array(7) { ["page_id"]=> string(1) "1" ["lang"]=> string(2) "en" ["layout"]=> string(4) "text" ["order"]=> string(1) "1" ["i"]=> string(1) "1" ["ElementTranslation"]=> string(35) "
+            xcdxd
 
-                // Retrieve orignal texts from DB
+            ggggh
+
+            " ["submit"]=> string(16) "Save Translation" } array(7) { ["page_id"]=> string(1) "1" ["element_id"]=> NULL ["lang"]=> string(2) "en" ["layout"]=> string(4) "text" ["order"]=> string(1) "1" ["i"]=> string(1) "1" ["ElementTranslation"]=> string(35) "
+            xcdxd
+
+            ggggh
+
+            " }
+
+            $idPage = '',$idElement='', $lang = '', $layout = '', $order = '', $text = '', $i = ''
+
+            */
+            $formMaker = $this->getExhibitPageBlocksFormMaker($formData["page_id"], $formData["element_id"], $formData["lang"], $formData["layout"], $formData["order"], $formData["element_translation"], $formData["i"]);
+            if ($formMaker->isValid($formData)) {
+                $text = $formMaker->getValues();
+                //var_dump($text);
+                //die();
+                // Sauvegarde form dans DB
                 $db = get_db();
-                $original = $db->query("SELECT * FROM `$db->ExhibitPages` WHERE id = " . $id)->fetchAll();
-                $original = "<details><summary>Original texts</summary><div><em>Title</em> : " . $original[0]['title'] . "<br /><br /><em>Short title</em> : " . $original[0]['short_title'] . "</div></details>";*/
+
+                $id = (int)$text[1]["element_id"];
+                $lang = $text[1]["lang"];
+                $value = $text[1]["element_translation"];
+                $useHtml = 1;
+
+                $db->query("DELETE FROM `$db->TranslationRecords` WHERE record_type LIKE 'PageBlockExhibit' AND record_id = " . $id." AND lang = '" . $lang ."'");
+                $query = "INSERT INTO `$db->TranslationRecords` VALUES (null, $id, 'PageBlockExhibit', 0, 0, 0, '".$lang."', '".$value."', $useHtml)";
+                $db->query($query);
+
+            }
+        }
+        /*
+                        // Retrieve orignal texts from DB
+                        $db = get_db();
+                        $original = $db->query("SELECT * FROM `$db->ExhibitPages` WHERE id = " . $id)->fetchAll();
+                        $original = "<details><summary>Original texts</summary><div><em>Title</em> : " . $original[0]['title'] . "<br /><br /><em>Short title</em> : " . $original[0]['short_title'] . "</div></details>";*/
         $this->view->form = $form . $linksPageBlocksTransLate;
+    }
+
+    public function getExhibitPageBlocksFormMaker($idPage = '', $idElement = '', $lang = '', $layout = '', $order = '', $text = '', $i = '')
+    {
+
+        $form = new Zend_Form();
+
+        $form->setName('ExhibitPageBlocksForm' . $i);
+
+        // Page
+        $page = new Zend_Form_Element_Hidden('page_id');
+        $page->setValue($idPage);
+        $page->setBelongsto($i);
+        $form->addElement($page);
+
+        // Element
+        $element = new Zend_Form_Element_Hidden('element_id');
+        $element->setValue($idElement);
+        $element->setBelongsto($i);
+        $form->addElement($element);
+
+        // Language
+        $language = new Zend_Form_Element_Hidden('lang');
+        $language->setValue($lang);
+        $language->setBelongsto($i);
+        $form->addElement($language);
+
+        // Layout
+        $layoutHidden = new Zend_Form_Element_Hidden('layout');
+        $layoutHidden->setValue($layout);
+        $layoutHidden->setBelongsto($i);
+        $form->addElement($layoutHidden);
+
+        // Order
+        $orderHidden = new Zend_Form_Element_Hidden('order');
+        $orderHidden->setValue($order);
+        $orderHidden->setBelongsto($i);
+        $form->addElement($orderHidden);
+
+        // I
+        $iHidden = new Zend_Form_Element_Hidden('i');
+        $iHidden->setValue($order);
+        $iHidden->setBelongsto($i);
+        $form->addElement($iHidden);
+
+        // Original
+        $originalText = new Zend_Form_Element_Note('OriginalText');
+        $originalText->setValue($text);
+        $originalText->setLabel("Block Original $order ($layout)");
+        $originalText->setBelongsto($i);
+        $form->addElement($originalText);
+
+        // Translation
+        $textTranslation = new Zend_Form_Element_Textarea('TextTranslated');
+        $textTranslation->setAttrib('rows', 10);
+        $textTranslation->setLabel(ucfirst(Locale::getDisplayLanguage($lang, $this->current_language)));
+        $textTranslation->setName('element_translation');
+        /*            if (isset($term[$lang]) && $term[$lang] <> '') {
+                        $textTerm->setValue($term[$lang]);
+                    }*/
+        $textTranslation->setBelongsto($i);
+        $form->addElement($textTranslation);
+
+        $form = $this->prettifyForm2($form);
+
+        $submit = new Zend_Form_Element_Submit('submit');
+        $submit->setLabel('Save Translation');
+        $submit->setValue('');
+        $submit->setBelongsto($i);
+        $form->addElement($submit);
+
+        return $form;
     }
 
     public function getExhibitPageBlocksForm($idPage, $lang)
@@ -377,53 +464,14 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $formOuput = "";
 
         foreach ($originals as $i => $original) {
-
+            $idElement = $original['id'];
             $layout = $original['layout'];
             $order = $original['order'];
             $text = $original['text'];
-
-            $form = new Zend_Form();
-
-            $form->setName('ExhibitPageBlocksForm' . $i);
-
-            // Page
-            $page = new Zend_Form_Element_Hidden('page_id');
-            $page->setValue($idPage);
-            $page->setBelongsto($i);
-            $form->addElement($page);
-
-            // Language
-            $language = new Zend_Form_Element_Hidden('lang');
-            $language->setValue($lang);
-            $language->setBelongsto($i);
-            $form->addElement($language);
-
-            // Original
-            $originalText = new Zend_Form_Element_Note('OriginalText');
-            $originalText->setValue($text);
-            $originalText->setLabel("Block Original $order ($layout)");
-            $originalText->setBelongsto($i);
-            $form->addElement($originalText);
-
-            // Translation
-            $textTranslation = new Zend_Form_Element_Textarea('TextTranslated');
-            $textTranslation->setAttrib('rows', 10);
-            $textTranslation->setLabel(ucfirst(Locale::getDisplayLanguage($lang, $this->current_language)));
-            $textTranslation->setName('ElementTranslation');
-            /*            if (isset($term[$lang]) && $term[$lang] <> '') {
-                            $textTerm->setValue($term[$lang]);
-                        }*/
-            $textTranslation->setBelongsto($i);
-            $form->addElement($textTranslation);
-
-            $submit = new Zend_Form_Element_Submit('submit');
-            $submit->setLabel('Save Translation');
-            $submit->setValue('');
-            $submit->setBelongsto($i);
-            $form->addElement($submit);
+            $form = $this->getExhibitPageBlocksFormMaker($idPage, $idElement, $lang, $layout, $order, $text, $i);
 
             $formOuput .= $form;
-            }
+        }
         return $formOuput;
     }
 
