@@ -370,7 +370,17 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
 
     public function getExhibitPageBlocksForm($idPage, $lang)
     {
-        $form = "$idPage $lang";
+        $db = get_db();
+        // Retrieve original blocks for this page from DB
+        $originals = $db->query("SELECT * FROM `$db->ExhibitPageBlocks` WHERE page_id = $idPage ORDER BY 'order' ASC")->fetchAll();
+        $form = "";
+        foreach ($originals as $i => $original) {
+            $layout = $original['layout'];
+            $order = $original['order'];
+            $text = $original['text'];
+            $form .= "<h3>Block $order ($layout)</h3>";
+            $form .= "<div>$text</div>";
+        }
         return $form;
     }
 
