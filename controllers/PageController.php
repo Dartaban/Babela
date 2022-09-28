@@ -291,7 +291,7 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $form = $this->getExhibitPageForm($id);
         $linksPageBlocksTransLate = "<ul>";
         foreach ($this->languages as $lang) {
-            $linksPageBlocksTransLate .= "<li><a href='$id/blocks/$lang'>Traduire blocks : ". Locale::getDisplayLanguage($lang, $this->current_language) . "</a></li>";
+            $linksPageBlocksTransLate .= "<li><a href='$id/blocks/$lang'>Traduire blocks : " . Locale::getDisplayLanguage($lang, $this->current_language) . "</a></li>";
         }
         $linksPageBlocksTransLate .= "</ul>";
 
@@ -323,51 +323,56 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $db = get_db();
         $original = $db->query("SELECT * FROM `$db->ExhibitPages` WHERE id = " . $id)->fetchAll();
         $original = "<details><summary>Original texts</summary><div><em>Title</em> : " . $original[0]['title'] . "<br /><br /><em>Short title</em> : " . $original[0]['short_title'] . "</div></details>";
-        $this->view->form = $original . $form.$linksPageBlocksTransLate;
+        $this->view->form = $original . $form . $linksPageBlocksTransLate;
     }
 
     public function translateExhibitPageBlocksAction()
     {
         $id = $this->getParam('id');
         $lang = $this->getParam('lang');
-        //$form = $this->getExhibitPageForm($id);
-        $linksPageBlocksTransLate = "$id$lang<ul>";
+        $form = $this->getExhibitPageBlocksForm($id, $lang);
+        $linksPageBlocksTransLate = "<ul>";
         foreach ($this->languages as $langT) {
-            $linksPageBlocksTransLate .= "<li><a href='$langT'>Traduire blocks : ". Locale::getDisplayLanguage($langT, $this->current_language) . "</a></li>";
+            $linksPageBlocksTransLate .= "<li><a href='$langT'>Traduire blocks : " . Locale::getDisplayLanguage($langT, $this->current_language) . "</a></li>";
         }
         $linksPageBlocksTransLate .= "</ul>";
 
-/*        if ($this->_request->isPost()) {
-            $formData = $this->_request->getPost();
-            if ($form->isValid($formData)) {
-                $texts = $form->getValues();
-                // Sauvegarde form dans DB
-                $db = get_db();
-                $db->query("DELETE FROM `$db->TranslationRecords` WHERE record_type LIKE 'PageExhibit%' AND record_id = " . $id);
-                $useHtml = 0;
-                foreach ($texts as $fieldName => $translations) {
-                    if (is_array($translations)) {
-                        foreach ($translations as $lang => $field) {
-                            $value = array_values($field);
-                            if ($value[0]) {
-                                $value = $db->quote($value[0]);
-                                $query = "INSERT INTO `$db->TranslationRecords` VALUES (null, $id, 'PageExhibit" . ucfirst($fieldName) . "', 0, 0, 0, '$lang', $value, $useHtml)";
-                                $db->query($query);
+        /*        if ($this->_request->isPost()) {
+                    $formData = $this->_request->getPost();
+                    if ($form->isValid($formData)) {
+                        $texts = $form->getValues();
+                        // Sauvegarde form dans DB
+                        $db = get_db();
+                        $db->query("DELETE FROM `$db->TranslationRecords` WHERE record_type LIKE 'PageExhibit%' AND record_id = " . $id);
+                        $useHtml = 0;
+                        foreach ($texts as $fieldName => $translations) {
+                            if (is_array($translations)) {
+                                foreach ($translations as $lang => $field) {
+                                    $value = array_values($field);
+                                    if ($value[0]) {
+                                        $value = $db->quote($value[0]);
+                                        $query = "INSERT INTO `$db->TranslationRecords` VALUES (null, $id, 'PageExhibit" . ucfirst($fieldName) . "', 0, 0, 0, '$lang', $value, $useHtml)";
+                                        $db->query($query);
+                                    }
+                                }
                             }
+                            $useHtml = 0;
                         }
                     }
-                    $useHtml = 0;
                 }
-            }
-        }
 
-        // Retrieve orignal texts from DB
-        $db = get_db();
-        $original = $db->query("SELECT * FROM `$db->ExhibitPages` WHERE id = " . $id)->fetchAll();
-        $original = "<details><summary>Original texts</summary><div><em>Title</em> : " . $original[0]['title'] . "<br /><br /><em>Short title</em> : " . $original[0]['short_title'] . "</div></details>";*/
-        $this->view->form = $linksPageBlocksTransLate;
+                // Retrieve orignal texts from DB
+                $db = get_db();
+                $original = $db->query("SELECT * FROM `$db->ExhibitPages` WHERE id = " . $id)->fetchAll();
+                $original = "<details><summary>Original texts</summary><div><em>Title</em> : " . $original[0]['title'] . "<br /><br /><em>Short title</em> : " . $original[0]['short_title'] . "</div></details>";*/
+        $this->view->form = $form . $linksPageBlocksTransLate;
     }
 
+    public function getExhibitPageBlocksForm($idPage, $lang)
+    {
+        $form = "$idPage $lang";
+        return $form;
+    }
 
     public function getSimpleVocabForm()
     {
@@ -429,6 +434,8 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $form = $this->prettifyForm($form);
         return $form;
     }
+
+    // ExhibitPageBlock.php
 
     public function getTagsForm()
     {
