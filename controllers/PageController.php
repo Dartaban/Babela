@@ -342,8 +342,8 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
                 $value = $formData["element_translation"];
                 $useHtml = 1;
 
-                $db->query("DELETE FROM `$db->TranslationRecords` WHERE record_type LIKE 'PageBlockExhibit' AND record_id = " . $id." AND lang = '" . $lang ."'");
-                $query = "INSERT INTO `$db->TranslationRecords` VALUES (null, $id, 'PageBlockExhibit', 0, 0, 0, '".$lang."', '".$value."', $useHtml)";
+                $db->query("DELETE FROM `$db->TranslationRecords` WHERE record_type LIKE 'PageBlockExhibit' AND record_id = " . $id . " AND lang = '" . $lang . "'");
+                $query = "INSERT INTO `$db->TranslationRecords` VALUES (null, $id, 'PageBlockExhibit', 0, 0, 0, '" . $lang . "', '" . $value . "', $useHtml)";
                 $db->query($query);
 
             }
@@ -412,8 +412,8 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $textTranslation->setName('element_translation');
         $db = get_db();
         // Retrieve translation for this block from DB
-        $translatedText = $db->query("SELECT text FROM `$db->TranslationRecords` WHERE record_type LIKE 'PageBlockExhibit' AND record_id = " . $idElement." AND lang = '" . $lang ."'")->fetchAll();
-        if (count($translatedText[0])>0) {
+        $translatedText = $db->query("SELECT text FROM `$db->TranslationRecords` WHERE record_type LIKE 'PageBlockExhibit' AND record_id = " . $idElement . " AND lang = '" . $lang . "'")->fetchAll();
+        if (count($translatedText[0]) > 0) {
             $textTranslation->setValue($translatedText[0]['text']);
         }
         $form->addElement($textTranslation);
@@ -441,9 +441,9 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
             $layout = $original['layout'];
             $order = $original['order'];
             $text = $original['text'];
-            if(        $layout != 'file'){
-            $form = $this->getExhibitPageBlocksFormMaker($idPage, $idElement, $lang, $layout, $order, $text, $i);
-            }else{
+            if ($layout != 'file') {
+                $form = $this->getExhibitPageBlocksFormMaker($idPage, $idElement, $lang, $layout, $order, $text, $i);
+            } else {
                 $form = "<p>No text to translate for File block $idElement</p>";
             }
 
