@@ -585,8 +585,10 @@ class BabelaPlugin extends Omeka_Plugin_AbstractPlugin
                     $pageTitle = $resQueryTitle['text'];
                 }
                 // If no title translation, we use the original title
-                if (!isset($pageTitle)) {
+                if (!isset($resQueryTitle['text'])) {
                     $pageTitle = $bPage->title;
+                } else {
+                    $pageTitle = $resQueryTitle['text'];
                 }
 
                 if ($bPage->id == $page->id) {
