@@ -441,7 +441,11 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
             $layout = $original['layout'];
             $order = $original['order'];
             $text = $original['text'];
+            if(        $layout != 'file'){
             $form = $this->getExhibitPageBlocksFormMaker($idPage, $idElement, $lang, $layout, $order, $text, $i);
+            }else{
+                $form = "<p>No text to translate for File block $idElement</p>";
+            }
 
             $formOuput .= $form;
         }
