@@ -126,7 +126,25 @@ instead of
 
 ```php
 <?php echo exhibit_builder_link_to($exhibit); ?>
+
 ```
+
+#### Exhibits
+
+In themes/yourBabelatheme/exhibit-builder/exhibits/show.php
+
+```php
+<?php
+$babela = new BabelaPlugin();
+?>
+```
+
+and then
+
+```php
+    <?php $babela->exhibit_builder_render_exhibit_page_translate(); ?>
+```
+
 #### Menus
 
 Menus translation is a bit tricky, because it depends on how yours are set up in your theme.
