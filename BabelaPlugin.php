@@ -20,6 +20,7 @@ class BabelaPlugin extends Omeka_Plugin_AbstractPlugin
         'uninstall',
         'after_save_item',
         'after_delete_item',
+        'before_delete_simple_pages_page',
         'after_save_collection',
         'after_save_file',
         'public_items_show',
@@ -312,6 +313,14 @@ class BabelaPlugin extends Omeka_Plugin_AbstractPlugin
             }
         }
         $flashMessenger->addMessage('Traduction sauvegardée.');
+    }
+
+    public function hookBeforeDeleteSimplePagesPage($args)
+    {
+        $record = $args['record'];
+        $type = get_class($record);
+        $db = get_db();
+        $db->query("DELETE FROM `$db->TranslationRecord` WHERE record_id = $record->id AND record_type LIKE 'SimplePage%'");
     }
 
     public function translateField($components, $args)
