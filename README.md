@@ -178,6 +178,7 @@ and then
 ```php
     echo $babela->translateMenu(public_nav_main()->setUlClass('menu-tabs')->render());
 ```
+Ba aware of the fact, the translation of the menu must be saved after every mdification of it.
 
 ## Usage
 
