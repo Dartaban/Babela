@@ -273,6 +273,14 @@ class BabelaPlugin extends Omeka_Plugin_AbstractPlugin
         $db->query("DELETE FROM `$db->TranslationRecord` WHERE record_id = $record->id AND record_type = '$type'");
     }
 
+    public function hookBeforeDeleteSimplePagesPage($args)
+    {
+        $record = $args['record'];
+        $type = get_class($record);
+        $db = get_db();
+        $db->query("DELETE FROM `$db->TranslationRecord` WHERE record_id = $record->id AND record_type LIKE 'SimplePage%'");
+    }
+
     public function hookAfterSaveItem($args)
     {
         $flashMessenger = Zend_Controller_Action_HelperBroker::getStaticHelper('FlashMessenger');
@@ -313,14 +321,6 @@ class BabelaPlugin extends Omeka_Plugin_AbstractPlugin
             }
         }
         $flashMessenger->addMessage('Traduction sauvegardée.');
-    }
-
-    public function hookBeforeDeleteSimplePagesPage($args)
-    {
-        $record = $args['record'];
-        $type = get_class($record);
-        $db = get_db();
-        $db->query("DELETE FROM `$db->TranslationRecord` WHERE record_id = $record->id AND record_type LIKE 'SimplePage%'");
     }
 
     public function translateField($components, $args)
