@@ -139,6 +139,28 @@ class BabelaPlugin extends Omeka_Plugin_AbstractPlugin
             )
         );
         $router->addRoute(
+            'babela_reset_menus_confirm',
+            new Zend_Controller_Router_Route(
+                'babela/page/reset-menus-confirm',
+                array(
+                    'module' => 'babela',
+                    'controller' => 'page',
+                    'action' => 'reset-menus-confirm'
+                )
+            )
+        );
+        $router->addRoute(
+            'babela_reset_menus',
+            new Zend_Controller_Router_Route(
+                '/babela/page/reset-menus',
+                array(
+                    'module' => 'babela',
+                    'controller' => 'page',
+                    'action' => 'reset-menus'
+                )
+            )
+        );
+        $router->addRoute(
             'babela_translate_simple_vocab',
             new Zend_Controller_Router_Route(
             //'babela/simple-vocab/:id',
@@ -233,19 +255,11 @@ class BabelaPlugin extends Omeka_Plugin_AbstractPlugin
                 )
             )
         );
-        $router->addRoute(
-            'babela_translate_tags',
-            new Zend_Controller_Router_Route(
-                'babela/tags',
-                array(
-                    'module' => 'babela',
-                    'controller' => 'page',
-                    'action' => 'translate-tags',
-                    'id' => '',
-                )
-            )
-        );
     }
+
+
+
+
 
     public function hookAfterSaveFile($args)
     {
