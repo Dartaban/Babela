@@ -44,23 +44,23 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $this->view->form = $form;
     }
 
-    public function resetMenusConfirmAction()
+    public function deleteMenusConfirmAction()
     {
         $isPartial = $this->getRequest()->isXmlHttpRequest();
-        $form = $this->_getResetMenusForm();
+        $form = $this->_getDeleteMenusForm();
 
         $this->view->assign(compact('isPartial', 'form'));
-        $this->render('page/partials/reset-menus-confirm',null, true);
+        $this->render('page/partials/delete-menus-confirm',null, true);
     }
 
-    public function resetMenusAction()
+    public function deleteMenusAction()
     {
 
         if (!$this->getRequest()->isPost()) {
             $this->_forward('method-not-allowed', 'error', 'default');
             return;
         }
-        $form = $this->_getResetMenusForm();
+        $form = $this->_getDeleteMenusForm();
         if ($form->isValid($_POST)) {
             $db = get_db();
             $db->query("DELETE FROM `$db->TranslationRecords` WHERE record_type LIKE 'Menu'");
@@ -422,14 +422,14 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         return $form;
     }
 
-    protected function _getResetMenusForm()
+    protected function _getDeleteMenusForm()
     {
         $form = new Zend_Form();
         $form->setElementDecorators(array('ViewHelper'));
         $form->removeDecorator('HtmlTag');
-        $form->addElement('hash', 'confirm_reset_hash');
-        $form->addElement('submit', 'Reset', array('class' => 'delete red button'));
-        $form->setAction($this->view->url(array('controller'=>'page', 'action'=>'reset-menus'),'babela_reset_menus'));
+        $form->addElement('hash', 'confirm_delete_hash');
+        $form->addElement('submit', 'Delete', array('class' => 'delete red button'));
+        $form->setAction($this->view->url(array('controller'=>'page', 'action'=>'delete-menus'),'babela_delete_menus'));
         return $form;
     }
 

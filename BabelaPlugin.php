@@ -139,24 +139,24 @@ class BabelaPlugin extends Omeka_Plugin_AbstractPlugin
             )
         );
         $router->addRoute(
-            'babela_reset_menus_confirm',
+            'babela_delete_menus_confirm',
             new Zend_Controller_Router_Route(
-                'babela/page/reset-menus-confirm',
+                'babela/page/delete-menus-confirm',
                 array(
                     'module' => 'babela',
                     'controller' => 'page',
-                    'action' => 'reset-menus-confirm'
+                    'action' => 'delete-menus-confirm'
                 )
             )
         );
         $router->addRoute(
-            'babela_reset_menus',
+            'babela_delete_menus',
             new Zend_Controller_Router_Route(
-                '/babela/page/reset-menus',
+                '/babela/page/delete-menus',
                 array(
                     'module' => 'babela',
                     'controller' => 'page',
-                    'action' => 'reset-menus'
+                    'action' => 'delete-menus'
                 )
             )
         );

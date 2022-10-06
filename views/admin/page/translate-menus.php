@@ -42,7 +42,7 @@ echo flash();
 <?php
 echo $form;
 ?>
-<p><a class='delete-confirm full-width red button' href='<?php echo url('babela/page/reset-menus-confirm'); ?>'><?php echo __('Delete translations'); ?></a></p>
+<p><a class='delete-confirm full-width red button' href='<?php echo url('babela/page/delete-menus-confirm'); ?>'><?php echo __('Delete menus translations'); ?></a></p>
 <?php
 echo foot();
 ?>
