@@ -50,7 +50,7 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $form = $this->_getDeleteMenusForm();
 
         $this->view->assign(compact('isPartial', 'form'));
-        $this->render('page/partials/delete-menus-confirm',null, true);
+        $this->render('page/partials/delete-menus-confirm', null, true);
     }
 
     public function deleteMenusAction()
@@ -101,10 +101,8 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
     public function translateSimpleVocabAction()
     {
         $form = false;
-        if (isset($params['module'])) {
-            if ($params['module'] == 'simple-vocab') {
-                $form = $this->getSimpleVocabForm();
-            }
+        if (plugin_is_active('SimpleVocab')) {
+            $form = $this->getSimpleVocabForm();
         }
         if ($this->_request->isPost()) {
             $formData = $this->_request->getPost();
@@ -122,6 +120,7 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
                 }
             }
         }
+
         if ($form) {
             $this->view->form = $form;
         }
@@ -429,10 +428,9 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $form->removeDecorator('HtmlTag');
         $form->addElement('hash', 'confirm_delete_hash');
         $form->addElement('submit', 'Delete', array('class' => 'delete red button'));
-        $form->setAction($this->view->url(array('controller'=>'page', 'action'=>'delete-menus'),'babela_delete_menus'));
+        $form->setAction($this->view->url(array('controller' => 'page', 'action' => 'delete-menus'), 'babela_delete_menus'));
         return $form;
     }
-
 
 
     public function getSimpleVocabForm()
@@ -443,7 +441,6 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
 		                     FROM `$db->SimpleVocabTerms` t
 		                      LEFT JOIN `$db->Elements` e ON e.id = t.element_id
 		                      LEFT JOIN `$db->TranslationRecords` tr ON tr.element_id = t.element_id")->fetchAll();
-
         $form = new Zend_Form();
         $form->setName('BabelaTranslationSVForm');
         // TODO : Synchro $terms / form
@@ -493,9 +490,9 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $form->addElement($submit);
 
         $form = $this->prettifyForm($form);
+
         return $form;
     }
-
 
 
     public function getSimplePageForm($id)
