@@ -178,7 +178,8 @@ and then
 ```php
     echo $babela->translateMenu(public_nav_main()->setUlClass('menu-tabs')->render());
 ```
-Ba aware of the fact, the translation of the menu must be saved after every mdification of it.
+Be aware of this fact, the translation of the menu must be saved after every modification of it.
+When the menu is reinitialized, the menus translation must be deleted.
 
 ## Usage
 
@@ -194,6 +195,7 @@ The following elements can be translated :
 - Simple Pages
 - Exhibits
 - Strings echoed in theme files (via the ``t()`` function)
+- Simple Vocab (You must select an original to get the traduction displayed)
 
 The following elements are NOT translated OR NOT FULLY, as of now :
 
