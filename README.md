@@ -195,7 +195,7 @@ The following elements can be translated :
 - Simple Pages
 - Exhibits
 - Strings echoed in theme files (via the ``t()`` function)
-- Simple Vocab (You must select an original to get the traduction displayed)
+- Simple Vocab (You must select an original to get the translation displayed)
 
 The following elements are NOT translated OR NOT FULLY, as of now :
 
