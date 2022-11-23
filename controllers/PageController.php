@@ -22,6 +22,7 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
 
     }
 
+    // TRANSLATE
     public function translateMenusAction()
     {
         $form = $this->getMenusForm();
@@ -43,91 +44,31 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $this->view->form = $form;
     }
 
-    public function getMenusForm()
+    public function deleteMenusConfirmAction()
     {
-        $db = get_db();
-        $menuTranslations = $db->query("SELECT * FROM `$db->TranslationRecords` WHERE record_type LIKE 'Menu'")->fetchAll();
-        $translations = [];
-        foreach ($menuTranslations as $x => $translationRecord) {
-            $translations[$translationRecord['element_id']][$translationRecord['lang']] = $translationRecord['text'];
-        }
-        $form = new Zend_Form();
-        $form->setName('BabelaTranslationMenuForm');
+        $isPartial = $this->getRequest()->isXmlHttpRequest();
+        $form = $this->_getDeleteMenusForm();
 
-        $dom = new DOMDocument;
-        @$dom->loadHTML('<?xml encoding="utf-8" ?>' . public_nav_main()->setUlClass('auteur-onglets')->render());
-        $elements = $dom->getElementsByTagName('li');
-        $default_language = ucfirst(Locale::getDisplayLanguage(get_option('locale_lang_code'), Zend_Registry::get('Zend_Locale')));
-        foreach ($elements as $i => $li) {
-            $j = $i + 1;
-            $text = trim($li->nodeValue);
-            if (strpos($text, "\n")) {
-                $text = substr($text, 0, strpos($text, "\n"));
-            }
-            $original = new Zend_Form_Element_Note('ElementMenu_' . $j);
-            $original->setLabel($default_language . ' : ');
-            $original->setValue("<h4>" . $text . "</h4>");
-            $original->setBelongsto($j);
-            $form->addElement($original);
-
-            foreach ($this->languages as $lang) {
-                $language = new Zend_Form_Element_Hidden('lang_' . $j . '_' . $lang . ' : ');
-                $language->setValue($lang);
-                $language->setBelongsto($j);
-                $form->addElement($language);
-
-                // Corps
-                $textMenu = new Zend_Form_Element_Text('texte');
-                $textMenu->setLabel(ucfirst(Locale::getDisplayLanguage($lang, $this->current_language)) . ' : ');
-                $textMenu->setName('ElementMenuTranslation_' . $j . '_' . $lang);
-                if (isset($translations[$j][$lang])) {
-                    $textMenu->setValue($translations[$j][$lang]);
-                }
-                $textMenu->setBelongsto($j);
-                $form->addElement($textMenu);
-            }
-        }
-        unset($dom);
-
-        $submit = new Zend_Form_Element_Submit('submit');
-        $submit->setLabel('Save Translations');
-        $submit->setValue('');
-        $form->addElement($submit);
-
-        $this->prettifyForm2($form);
-        return $form;
+        $this->view->assign(compact('isPartial', 'form'));
+        $this->render('page/partials/delete-menus-confirm', null, true);
     }
 
-    public function listSimplePagesAction()
+    public function deleteMenusAction()
     {
-        $db = get_db();
-        $simplePages = $db->query("SELECT title, id FROM `$db->SimplePagesPage`")->fetchAll();
-        $list = "<ul>";
-        foreach ($simplePages as $i => $page) {
-            $list .= "<li><a href='" . WEB_ROOT . "/admin/babela/simple-page/" . $page['id'] . "' target='_blank'>" . $page['title'] . "</a></li>";
+
+        if (!$this->getRequest()->isPost()) {
+            $this->_forward('method-not-allowed', 'error', 'default');
+            return;
         }
-        $list .= "</ul>";
-
-        $this->view->content = $list;
-    }
-
-    public function listExhibitsPagesAction()
-    {
-        $db = get_db();
-        $exhibits = $db->query("SELECT title, id FROM `$db->Exhibits`")->fetchAll();
-        $list = "<ul>";
-        foreach ($exhibits as $i => $exhibit) {
-            $list .= "<li><a href='" . WEB_ROOT . "/admin/babela/exhibit/" . $exhibit['id'] . "' target='_blank'>" . $exhibit['title'] . "</a></li>";
-            $exhibitPages = $db->getTable("ExhibitPage")->findBy(array('exhibit_id' => $exhibit['id'], 'sort_field' => 'order'));
-            $list .= "<ul>";
-            foreach ($exhibitPages as $ii => $exhibitPage) {
-                $list .= "<li><a href='" . WEB_ROOT . "/admin/babela/exhibit/page/" . $exhibitPage['id'] . "' target='_blank'>" . $exhibitPage['title'] . "</a></li>";
-            }
-            $list .= "</ul>";
+        $form = $this->_getDeleteMenusForm();
+        if ($form->isValid($_POST)) {
+            $db = get_db();
+            $db->query("DELETE FROM `$db->TranslationRecords` WHERE record_type LIKE 'Menu'");
+            $this->_helper->flashMessenger(__('The menus translation has been erased'), 'success');
+            $this->_helper->redirector('translate-menus');
+        } else {
+            throw new Omeka_Controller_Exception_404;
         }
-        $list .= "</ul>";
-
-        $this->view->content = $list;
     }
 
     public function translateTagsAction()
@@ -159,11 +100,9 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
 
     public function translateSimpleVocabAction()
     {
-        $form=false;
-        if (isset($params['module'])) {
-            if ($params['module'] == 'simple-vocab') {
-                $form = $this->getSimpleVocabForm();
-            }
+        $form = false;
+        if (plugin_is_active('SimpleVocab')) {
+            $form = $this->getSimpleVocabForm();
         }
         if ($this->_request->isPost()) {
             $formData = $this->_request->getPost();
@@ -181,7 +120,8 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
                 }
             }
         }
-        if($form) {
+
+        if ($form) {
             $this->view->form = $form;
         }
     }
@@ -203,11 +143,12 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
                             $value = array_values($field);
                             $value = $db->quote($value[0]);
                             if ($value) {
-                                if (isset($texts["use_tiny_mce_" . $this->current_language]) && $texts["use_tiny_mce_" . $this->current_language] == 1) {
+                                if (array_key_exists("use_tiny_mce_" . $lang, $texts) && $texts["use_tiny_mce_" . $lang] == 1 && array_key_exists("text" . $lang, $field)) {
                                     $useHtml = 1;
                                 } else {
                                     $useHtml = 0;
                                 }
+
                                 $query = "INSERT INTO `$db->TranslationRecords` VALUES (null, $id, 'SimplePage" . ucfirst($fieldName) . "', 0, 0, 0, '$lang', $value, $useHtml)";
                                 $db->query($query);
                             }
@@ -284,6 +225,11 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
     {
         $id = $this->getParam('id');
         $form = $this->getExhibitPageForm($id);
+        $linksPageBlocksTransLate = "<ul>";
+        foreach ($this->languages as $lang) {
+            $linksPageBlocksTransLate .= "<li><a href='$id/blocks/$lang'>Traduire blocks : " . Locale::getDisplayLanguage($lang, $this->current_language) . "</a></li>";
+        }
+        $linksPageBlocksTransLate .= "</ul>";
 
         if ($this->_request->isPost()) {
             $formData = $this->_request->getPost();
@@ -313,7 +259,177 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $db = get_db();
         $original = $db->query("SELECT * FROM `$db->ExhibitPages` WHERE id = " . $id)->fetchAll();
         $original = "<details><summary>Original texts</summary><div><em>Title</em> : " . $original[0]['title'] . "<br /><br /><em>Short title</em> : " . $original[0]['short_title'] . "</div></details>";
-        $this->view->form = $original . $form;
+        $this->view->form = $original . $form . $linksPageBlocksTransLate;
+    }
+
+    public function translateExhibitPageBlocksAction()
+    {
+
+        if ($this->_request->isPost()) {
+            $formData = $this->_request->getPost();
+            $formMaker = $this->getExhibitPageBlocksFormMaker($formData["page_id"], $formData["element_id"], $formData["lang"], $formData["layout"], $formData["order"], $formData["element_translation"], $formData["i"]);
+            if ($formMaker->isValid($formData)) {
+                //$text = $formMaker->getValues();
+                // Sauvegarde form dans DB
+                $db = get_db();
+
+                $id = (int)$formData["element_id"];
+                $lang = $formData["lang"];
+                $value = $formData["element_translation"];
+                $useHtml = 1;
+
+                $db->query("DELETE FROM `$db->TranslationRecords` WHERE record_type LIKE 'PageBlockExhibit' AND record_id = " . $id . " AND lang = '" . $lang . "'");
+                $query = "INSERT INTO `$db->TranslationRecords` VALUES (null, $id, 'PageBlockExhibit', 0, 0, 0, '" . $lang . "', '" . $value . "', $useHtml)";
+                $db->query($query);
+
+            }
+        }
+
+        $id = $this->getParam('id');
+        $lang = $this->getParam('lang');
+        $form = $this->getExhibitPageBlocksForm($id, $lang);
+
+        $linksPageBlocksTransLate = "<ul>";
+        foreach ($this->languages as $langT) {
+            $linksPageBlocksTransLate .= "<li><a href='$langT'>Traduire blocks : " . Locale::getDisplayLanguage($langT, $this->current_language) . "</a></li>";
+        }
+        $linksPageBlocksTransLate .= "</ul>";
+
+        $this->view->form = $form . $linksPageBlocksTransLate;
+    }
+
+    public function getExhibitPageBlocksFormMaker($idPage = '', $idElement = '', $lang = '', $layout = '', $order = '', $text = '', $i = '')
+    {
+
+        $form = new Zend_Form();
+
+        $form->setName('ExhibitPageBlocksForm' . $i);
+
+        // Page
+        $page = new Zend_Form_Element_Hidden('page_id');
+        $page->setValue($idPage);
+        $form->addElement($page);
+
+        // Element
+        $element = new Zend_Form_Element_Hidden('element_id');
+        $element->setValue($idElement);
+        $form->addElement($element);
+
+        // Language
+        $language = new Zend_Form_Element_Hidden('lang');
+        $language->setValue($lang);
+        $form->addElement($language);
+
+        // Layout
+        $layoutHidden = new Zend_Form_Element_Hidden('layout');
+        $layoutHidden->setValue($layout);
+        $form->addElement($layoutHidden);
+
+        // Order
+        $orderHidden = new Zend_Form_Element_Hidden('order');
+        $orderHidden->setValue($order);
+        $form->addElement($orderHidden);
+
+        // I
+        $iHidden = new Zend_Form_Element_Hidden('i');
+        $iHidden->setValue($order);
+        $form->addElement($iHidden);
+
+        // Original
+        $originalText = new Zend_Form_Element_Note('OriginalText');
+        $originalText->setValue($text);
+        $originalText->setLabel("Block Original $order ($layout)");
+        $form->addElement($originalText);
+
+        // Translation
+        $textTranslation = new Zend_Form_Element_Textarea('TextTranslated');
+        $textTranslation->setAttrib('rows', 10);
+        $textTranslation->setLabel(ucfirst(Locale::getDisplayLanguage($lang, $this->current_language)));
+        $textTranslation->setName('element_translation');
+        $db = get_db();
+        // Retrieve translation for this block from DB
+        $translatedText = $db->query("SELECT text FROM `$db->TranslationRecords` WHERE record_type LIKE 'PageBlockExhibit' AND record_id = " . $idElement . " AND lang = '" . $lang . "'")->fetchAll();
+        if (count($translatedText[0]) > 0) {
+            $textTranslation->setValue($translatedText[0]['text']);
+        }
+        $form->addElement($textTranslation);
+
+        $form = $this->prettifyForm2($form);
+
+        $submit = new Zend_Form_Element_Submit('submit');
+        $submit->setLabel('Save Translation');
+        $submit->setValue('');
+        $form->addElement($submit);
+
+        return $form;
+    }
+
+    // FORMS
+
+    public function getMenusForm()
+    {
+        $db = get_db();
+        $menuTranslations = $db->query("SELECT * FROM `$db->TranslationRecords` WHERE record_type LIKE 'Menu'")->fetchAll();
+        $translations = [];
+        foreach ($menuTranslations as $x => $translationRecord) {
+            $translations[$translationRecord['element_id']][$translationRecord['lang']] = $translationRecord['text'];
+        }
+        $form = new Zend_Form();
+        $form->setName('BabelaTranslationMenuForm');
+
+        $dom = new DOMDocument;
+        @$dom->loadHTML('<?xml encoding="utf-8" ?>' . public_nav_main()->setUlClass('auteur-onglets')->render());
+        $elements = $dom->getElementsByTagName('li');
+        $default_language = ucfirst(Locale::getDisplayLanguage(get_option('locale_lang_code'), Zend_Registry::get('Zend_Locale')));
+        foreach ($elements as $i => $li) {
+            $j = $i + 1;
+            $text = trim($li->nodeValue);
+            if (strpos($text, "\n")) {
+                $text = substr($text, 0, strpos($text, "\n"));
+            }
+            $original = new Zend_Form_Element_Note('ElementMenu_' . $j);
+            $original->setLabel($default_language . ' : ');
+            $original->setValue("<h4>" . $text . "</h4>");
+            $original->setBelongsto($j);
+            $form->addElement($original);
+
+            foreach ($this->languages as $lang) {
+                $language = new Zend_Form_Element_Hidden('lang_' . $j . '_' . $lang . ' : ');
+                $language->setValue($lang);
+                $language->setBelongsto($j);
+                $form->addElement($language);
+
+                // Corps
+                $textMenu = new Zend_Form_Element_Text('texte');
+                $textMenu->setLabel(ucfirst(Locale::getDisplayLanguage($lang, $this->current_language)) . ' : ');
+                $textMenu->setName('ElementMenuTranslation_' . $j . '_' . $lang);
+                if (isset($translations[$j][$lang])) {
+                    $textMenu->setValue($translations[$j][$lang]);
+                }
+                $textMenu->setBelongsto($j);
+                $form->addElement($textMenu);
+            }
+        }
+        unset($dom);
+
+        $submit = new Zend_Form_Element_Submit('submit');
+        $submit->setLabel('Save Translations');
+        $submit->setValue('');
+        $form->addElement($submit);
+
+        $this->prettifyForm2($form);
+        return $form;
+    }
+
+    protected function _getDeleteMenusForm()
+    {
+        $form = new Zend_Form();
+        $form->setElementDecorators(array('ViewHelper'));
+        $form->removeDecorator('HtmlTag');
+        $form->addElement('hash', 'confirm_delete_hash');
+        $form->addElement('submit', 'Delete', array('class' => 'delete red button'));
+        $form->setAction($this->view->url(array('controller' => 'page', 'action' => 'delete-menus'), 'babela_delete_menus'));
+        return $form;
     }
 
 
@@ -325,7 +441,6 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
 		                     FROM `$db->SimpleVocabTerms` t
 		                      LEFT JOIN `$db->Elements` e ON e.id = t.element_id
 		                      LEFT JOIN `$db->TranslationRecords` tr ON tr.element_id = t.element_id")->fetchAll();
-
         $form = new Zend_Form();
         $form->setName('BabelaTranslationSVForm');
         // TODO : Synchro $terms / form
@@ -375,8 +490,78 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $form->addElement($submit);
 
         $form = $this->prettifyForm($form);
+
         return $form;
     }
+
+
+    public function getSimplePageForm($id)
+    {
+        $db = get_db();
+        // Retrieve translations for this page type from DB
+        $translations = $db->query("SELECT * FROM `$db->TranslationRecords` WHERE record_type LIKE 'SimplePage%' AND record_id = " . $id)->fetchAll();
+        if ($translations) {
+            $values = array();
+            foreach ($translations as $index => $texts) {
+                $fieldName = substr($texts['record_type'], 10);
+                $values[$fieldName][$texts['lang']]['text'] = $texts['text'];
+                $values[$fieldName][$texts['lang']]['html'] = $texts['html'];
+            }
+        }
+
+        $form = new Zend_Form();
+        $form->setName('BabelaTranslationSSForm');
+
+        foreach ($this->languages as $lang) {
+            $titleName = "title[$lang]";
+            $textName = "text[$lang]";
+
+            // Titre
+            $titleSS = new Zend_Form_Element_Text('title');
+            $titleSS->setLabel('Title (' . Locale::getDisplayLanguage($lang, $this->current_language) . ')');
+            $titleSS->setName($titleName);
+            if (isset($values['Title'][$lang]['text'])) {
+                $titleSS->setValue($values['Title'][$lang]['text']);
+            }
+            $titleSS->setBelongsTo($titleName);
+            $form->addElement($titleSS);
+            $checked = $values[$fieldName][$lang]['html'];
+            if ((int)$checked > 0) {
+                $checked = (int)$checked;
+            } else {
+                $checked = false;
+            }
+            $html = $form->createElement(
+                'checkbox', 'use_tiny_mce_' . $lang,
+                array(
+                    'id' => 'babela-use-tiny-mce-' . $lang,
+                    'class' => 'babela-use-tiny-mce',
+                    'checked' => $checked,
+                    'values' => array(1, 0),
+                    'label' => __('Use HTML editor?'),
+                )
+            );
+            $form->addElement($html);
+
+            // Corps
+            $textSS = new Zend_Form_Element_Textarea('texte');
+            $textSS->setLabel('Text (' . Locale::getDisplayLanguage($lang, $this->current_language) . ')');
+            $textSS->setName($textName);
+            if (isset($values['Text'][$lang]['text'])) {
+                $textSS->setValue($values['Text'][$lang]['text']);
+            }
+            $textSS->setBelongsTo($textName);
+            $textSS->setAttrib('class', 'babela-use-html');
+            $form->addElement($textSS);
+        }
+
+        $submit = new Zend_Form_Element_Submit('submit');
+        $submit->setLabel('Save Translation');
+        $form->addElement($submit);
+
+        return $form;
+    }
+
 
     public function getTagsForm()
     {
@@ -440,73 +625,6 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         $form->addElement($submit);
 
         $form = $this->prettifyForm($form);
-        return $form;
-    }
-
-    public function getSimplePageForm($id)
-    {
-        $db = get_db();
-        // Retrieve translations for this page type from DB
-        $translations = $db->query("SELECT * FROM `$db->TranslationRecords` WHERE record_type LIKE 'SimplePage%' AND record_id = " . $id)->fetchAll();
-        if ($translations) {
-            $values = array();
-            foreach ($translations as $index => $texts) {
-                $fieldName = substr($texts['record_type'], 10);
-                $values[$fieldName][$texts['lang']] = $texts['text'];
-                $values[$fieldName]['html'] = $texts['html'];
-            }
-        }
-
-        $form = new Zend_Form();
-        $form->setName('BabelaTranslationSSForm');
-
-        foreach ($this->languages as $lang) {
-            $titleName = "title[$lang]";
-            $textName = "text[$lang]";
-
-            // Titre
-            $titleSS = new Zend_Form_Element_Text('title');
-            $titleSS->setLabel('Title (' . Locale::getDisplayLanguage($lang, $this->current_language) . ')');
-            $titleSS->setName($titleName);
-            if (isset($values['Title'][$lang])) {
-                $titleSS->setValue($values['Title'][$lang]);
-            }
-            $titleSS->setBelongsTo($titleName);
-            $form->addElement($titleSS);
-
-            if (isset($values['Text']['html'])) {
-                $checked = $values['Text']['html'];
-            } else {
-                $checked = false;
-            }
-            $html = $form->createElement(
-                'checkbox', 'use_tiny_mce_' . $lang,
-                array(
-                    'id' => 'babela-use-tiny-mce-' . $lang,
-                    'class' => 'babela-use-tiny-mce',
-                    'checked' => $checked,
-                    'values' => array(1, 0),
-                    'label' => __('Use HTML editor?'),
-                )
-            );
-            $form->addElement($html);
-
-            // Corps
-            $textSS = new Zend_Form_Element_Textarea('texte');
-            $textSS->setLabel('Text (' . Locale::getDisplayLanguage($lang, $this->current_language) . ')');
-            $textSS->setName($textName);
-            if (isset($values['Text'][$lang])) {
-                $textSS->setValue($values['Text'][$lang]);
-            }
-            $textSS->setBelongsTo($textName);
-            $textSS->setAttrib('class', 'babela-use-html');
-            $form->addElement($textSS);
-        }
-
-        $submit = new Zend_Form_Element_Submit('submit');
-        $submit->setLabel('Save Translation');
-        $form->addElement($submit);
-
         return $form;
     }
 
@@ -654,6 +772,7 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         foreach ($this->languages as $lang) {
             $titleName = "title[$lang]";
             $shortTitleName = "menu_title[$lang]";
+            $linkTranslatePageBlocksName = "note_link_translate_page_blocks[$lang]";
 
             // Title
             $titleSS = new Zend_Form_Element_Text('title');
@@ -674,6 +793,12 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
             }
             $shorttitleSS->setBelongsTo($shortTitleName);
             $form->addElement($shorttitleSS);
+
+            // Translate content link
+            //$linkTranslatePageBlocks = new Zend_Form_Element_Note('note_link_translate_page_blocks');
+            //$linkTranslatePageBlocks->setValue("<p><a href='/blocks/$lang'>Traduire blocks</a>".'(' . Locale::getDisplayLanguage($lang, $this->current_language) . ')'."</p>");
+            //$linkTranslatePageBlocks->setBelongsTo($linkTranslatePageBlocksName);
+            //$form->addElement($linkTranslatePageBlocks);
         }
 
         $submit = new Zend_Form_Element_Submit('submit');
@@ -682,6 +807,30 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
 
         return $form;
 
+    }
+
+    public function getExhibitPageBlocksForm($idPage, $lang)
+    {
+        $db = get_db();
+        // Retrieve original blocks for this page from DB
+        $originals = $db->query("SELECT * FROM `$db->ExhibitPageBlocks` WHERE page_id = $idPage ORDER BY 'order' ASC")->fetchAll();
+
+        $formOuput = "";
+
+        foreach ($originals as $i => $original) {
+            $idElement = $original['id'];
+            $layout = $original['layout'];
+            $order = $original['order'];
+            $text = $original['text'];
+            if ($layout != 'file') {
+                $form = $this->getExhibitPageBlocksFormMaker($idPage, $idElement, $lang, $layout, $order, $text, $i);
+            } else {
+                $form = "<p>No text to translate for File block $idElement</p>";
+            }
+
+            $formOuput .= $form;
+        }
+        return $formOuput;
     }
 
     private function prettifyForm2($form)
@@ -763,5 +912,44 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
         }
         return $form;
     }
+
+    // LIST
+
+    public function listSimplePagesAction()
+    {
+        if (plugin_is_active('SimplePages')) {
+            $db = get_db();
+            $simplePages = $db->query("SELECT title, id FROM `$db->SimplePagesPage`")->fetchAll();
+            $list = "<ul>";
+            foreach ($simplePages as $i => $page) {
+                $list .= "<li><a href='" . WEB_ROOT . "/admin/babela/simple-page/" . $page['id'] . "' target='_blank'>" . $page['title'] . "</a></li>";
+            }
+            $list .= "</ul>";
+
+            $this->view->content = $list;
+        }
+    }
+
+    public function listExhibitsPagesAction()
+    {
+        if (plugin_is_active('ExhibitBuilder')) {
+            $db = get_db();
+            $exhibits = $db->query("SELECT title, id FROM `$db->Exhibits`")->fetchAll();
+            $list = "<ul>";
+            foreach ($exhibits as $i => $exhibit) {
+                $list .= "<li><a href='" . WEB_ROOT . "/admin/babela/exhibit/" . $exhibit['id'] . "' target='_blank'>" . $exhibit['title'] . "</a></li>";
+                $exhibitPages = $db->getTable("ExhibitPage")->findBy(array('exhibit_id' => $exhibit['id'], 'sort_field' => 'order'));
+                $list .= "<ul>";
+                foreach ($exhibitPages as $ii => $exhibitPage) {
+                    $list .= "<li><a href='" . WEB_ROOT . "/admin/babela/exhibit/page/" . $exhibitPage['id'] . "' target='_blank'>" . $exhibitPage['title'] . "</a></li>";
+                }
+                $list .= "</ul>";
+            }
+            $list .= "</ul>";
+
+            $this->view->content = $list;
+        }
+    }
+
 
 }

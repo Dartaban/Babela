@@ -126,7 +126,25 @@ instead of
 
 ```php
 <?php echo exhibit_builder_link_to($exhibit); ?>
+
 ```
+
+#### Exhibits
+
+In themes/yourBabelatheme/exhibit-builder/exhibits/show.php
+
+```php
+<?php
+$babela = new BabelaPlugin();
+?>
+```
+
+and then
+
+```php
+    <?php $babela->exhibit_builder_render_exhibit_page_translate(); ?>
+```
+
 #### Menus
 
 Menus translation is a bit tricky, because it depends on how yours are set up in your theme.
@@ -160,6 +178,8 @@ and then
 ```php
     echo $babela->translateMenu(public_nav_main()->setUlClass('menu-tabs')->render());
 ```
+Be aware of this fact, the translation of the menu must be saved after every modification of it.
+When the menu is reinitialized, the menus translation must be deleted.
 
 ## Usage
 
@@ -170,16 +190,17 @@ Enabling the HTML editor will affect the original field and all the translation 
 The following elements can be translated :
 
 - Items
-- Simple Pages
+- File
 - Menus
+- Simple Pages
+- Exhibits
 - Strings echoed in theme files (via the ``t()`` function)
+- Simple Vocab (You must select an original to get the translation displayed)
 
 The following elements are NOT translated OR NOT FULLY, as of now :
 
 - Site's information
-- Exhibits
 - Collections
-- File
 
 Once an element is translated, the plugin detects the current language and displays the matching translation if it exists, the default language string if it doesn't.
 

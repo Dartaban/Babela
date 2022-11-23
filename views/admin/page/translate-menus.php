@@ -22,10 +22,11 @@ echo flash();
             <li>
                 <a href='<?php echo WEB_ROOT; ?>/admin/babela/terms'>Termes</a>
             </li>
-        <!--
+
             <li>
                 <a href='<?php echo WEB_ROOT; ?>/admin/babela/list-exhibits-pages'>Expositions</a>
             </li>
+            <!--
             <li>
                 <a href='<?php echo WEB_ROOT; ?>/admin/babela/tags'>Tags</a>
             </li>
@@ -40,5 +41,8 @@ echo flash();
     </style>
 <?php
 echo $form;
+?>
+<p><a class='delete-confirm full-width red button' href='<?php echo url('babela/page/delete-menus-confirm'); ?>'><?php echo __('Delete menus translations'); ?></a></p>
+<?php
 echo foot();
 ?>
