@@ -303,6 +303,11 @@ class BabelaPlugin extends Omeka_Plugin_AbstractPlugin
         // Is the item created via IHM ? If not, quit immediately
         if ($args['post']) {
             $data = get_object_vars($args['post']);
+            if(empty($data)){
+                //$args['post'] is an arrayObject. to transform it into array we need to cast it !!!!
+                $data = (array)$args['post'];
+            }
+
         } else {
             return;
         }
