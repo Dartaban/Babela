@@ -33,7 +33,9 @@ echo flash();
 <h2>Fonctionnement du plugin</h2>
 
 <div>
-    Texte de la documentation à saisir ici
+    <p>Texte de la documentation à saisir ici.</p>
+    <p>Voir le readme du plugin ou se rendre sur cette <a href="https://github.com/Dartaban/Babela/tree/master" target="_blank">page</a></p>
+
 </div>
 <?php
 
