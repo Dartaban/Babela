@@ -525,12 +525,14 @@ class Babela_PageController extends Omeka_Controller_AbstractActionController
             }
             $titleSS->setBelongsTo($titleName);
             $form->addElement($titleSS);
-            $checked = $values[$fieldName][$lang]['html'];
-            if ((int)$checked > 0) {
-                $checked = (int)$checked;
-            } else {
-                $checked = false;
+            $checked = false;
+            if (isset($values)) {
+                $checked = $values[$fieldName][$lang]['html'];
+                if ((int)$checked > 0) {
+                    $checked = (int)$checked;
+                }
             }
+
             $html = $form->createElement(
                 'checkbox', 'use_tiny_mce_' . $lang,
                 array(
