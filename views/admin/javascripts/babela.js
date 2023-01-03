@@ -34,7 +34,7 @@ $(document).ready(function() {
             add_unload_trigger: false,
         };
 
-        tinymce.init($.extend(initParams, params));
+        tinyMCE.init($.extend(initParams, params));
     };
 
     Omeka.Elements.enableWysiwyg = function (element) {
@@ -60,5 +60,5 @@ $(document).ready(function() {
             }
         });
     };
-  Omeka.Elements.enableWysiwyg('#item-form');
+  Omeka.Elements.delay(777).enableWysiwyg('#item-form');
 })
